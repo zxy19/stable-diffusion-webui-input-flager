@@ -1,6 +1,6 @@
 
 
-const __inputList = [
+const __inputList_org = [
     "Euler a",
     "Euler",
     "LMS",
@@ -41,6 +41,8 @@ const __inputList = [
     "Crop and resize",
     "Resize and fill",
     "Denoising strength"];
+var __inputList = [];
+var __inputValueMapper = {};
 function findInput(labelElem) {
     var currentElem = labelElem.parentNode;
     while (currentElem && currentElem != document.body) {
@@ -52,8 +54,8 @@ function findInput(labelElem) {
     }
     return null;
 }
-function findInput_id(root) {
-    var text_base = root.innerText;
+function findInput_id(root,flagVal) {
+    var text_base = flagVal;
     var currentElem = root.parentNode;
     while (currentElem && currentElem != document.body) {
         if (currentElem.id && currentElem.id.substr(0, 3) == "tab")
@@ -115,7 +117,7 @@ function PriorityQueue() {
         queue = [];
     };
 }
-function __flagElem(root,classN) {
+function __flagElem(root, classN) {
     var que = new PriorityQueue(), p;
     que.push({ root: root, p: 0 });
     while (!que.isEmpty()) {
@@ -126,11 +128,13 @@ function __flagElem(root,classN) {
                 var input = findInput(root);
                 if (input) {
                     UI_control[classN].push(input);
-                    UI_control[classN + "_select"][getTxt(root)]=input;
-                    input.setAttribute("data-auto-saver-id", findInput_id(root));
-                    input.setAttribute("data-belongsId", getTxt(root));
+                    UI_control[classN + "_select"][__inputValueMapper[getTxt(root)]] = input;
+                    UI_control[classN + "_select"][getTxt(root)] = input;
+                    input.setAttribute("data-auto-saver-id", findInput_id(root, __inputValueMapper[getTxt(root)]));
+                    input.setAttribute("data-belongsId", __inputValueMapper[getTxt(root)]);
+                    input.setAttribute("data-belongsId_local", getTxt(root));
                 }
-                console.log("[DA]:FIND-" + getTxt(root))
+                console.log("[DA]:FIND-" + getTxt(root) + "(" + __inputValueMapper[getTxt(root)] + ")");
                 continue;
             }
         }
@@ -147,12 +151,16 @@ function __flagElem(root,classN) {
 }
 function __list_input() {
     console.log("[UC]:INIT")
+    __inputList_org.forEach((elem) => {
+        __inputList.push((window.localization && localization[elem]) || elem);
+        __inputValueMapper[(window.localization && localization[elem]) || elem] = elem;
+    });
     __flagElem(gradioApp().querySelector("#tab_img2img"), "i2i");
     __flagElem(gradioApp().querySelector("#tab_txt2img"), "t2i");
-    window.dispatchEvent(new Event("flagEnded"),UI_control)
+    window.dispatchEvent(new Event("flagEnded"), UI_control)
 }
 function __input_setVal(elem, val) {
-    let changed=false;
+    let changed = false;
     if (elem.nodeName == 'TEXTAREA') {
         changed = (elem.value != val)
         elem.value = val;
@@ -167,7 +175,7 @@ function __input_setVal(elem, val) {
     }
 
     if (changed)
-    elem.dispatchEvent(new InputEvent('change', { autoInnerEvent: true }));
+        elem.dispatchEvent(new InputEvent('change', { autoInnerEvent: true }));
     elem.dispatchEvent(new InputEvent('input', { autoInnerEvent: true }));
 }
 function __input_getVal(elem) {
@@ -184,7 +192,7 @@ function __input_getVal(elem) {
 
 window.addEventListener("load", function () {
     function __loadCheck() {
-        if (!gradioApp().querySelector("div.gradio-container > div.wrap.svelte-1ka70lm.cover-bg > div.m-12.z-20")) {
+        if (!gradioApp().querySelector("div.gradio-container div.m-12.z-20")) {
             __list_input();
         } else setTimeout(__loadCheck, 1000);
     }
@@ -198,6 +206,6 @@ var UI_control = {
     i2i: [],
     t2i_select: {},
     i2i_select: {},
-    set:__input_setVal,
-    get:__input_getVal
+    set: __input_setVal,
+    get: __input_getVal
 }
