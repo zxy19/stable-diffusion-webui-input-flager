@@ -110,6 +110,7 @@ UI_control.set(UI_control.t2i_select['DDIM'],1)//设置文转图的采样器为D
 > Resize and fill
 >
 > Denoising strength
+注意：虽然您也可以使用本地化文本来查找控件，但是推荐使用上述清单。这将保证程序运行统一。
 
 ### 运行时机
 由于页面是异步加载的，所以当元素加载完成并标记后，程序会发出一个事件。在此事件触发时，UI_control的所有值和方法均已可使用。 
